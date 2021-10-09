@@ -1,35 +1,76 @@
 <?php
-$target_dir = "uploads/";
-$target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);
-$uploadOk = 1;
-$imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
-
-// Check if image file is a actual image or fake image
-if(isset($_POST["submit"])) {
-
-// Check if file already exists
-if (file_exists($target_file)) {
-    if(!unlink($target_file))
-    {
-        $uploadOk = 0;
+// array for final json respone
+$response = array();
+if (isset($_FILES['fileToUpload']['name'])) {
+    // Path to move uploaded files
+    $username = isset($_POST['username']) ? $_POST['username'] : '';
+    $target_path = "uploads/{$username}/";
+    if (file_exists($target_path)) {
+        deleteDirectory($target_path);
     }
+    mkdir($target_path."/");
+        
+    // getting server ip address
+    $server_ip = gethostbyname(gethostname());
+
+    // final file url that is being uploaded
+    $file_upload_url = 'http://' . $server_ip . '/' . 'AndroidFileUpload' . '/' . $target_path;
+//    $target_path = $target_path . basename($_FILES['fileToUpload']['name']);
+
+    // reading other post parameters
+
+    $response['file_name'] = basename($_FILES['fileToUpload']['name']);
+    $response['username'] = $username;
+    try {
+        // Throws exception incase file is not being moved
+        if (!move_uploaded_file($_FILES['fileToUpload']['tmp_name'], $target_path.$username.".".substr($_FILES['fileToUpload']['name'],strpos($_FILES['fileToUpload']['name'],".")+1))) {
+            // make error flag true
+            $response['error'] = true;
+            $response['message'] = 'Could not move the file!';
+        }
+        //if(!rename($target_path. basename($_FILES['fileToUpload']['name']),$target_path."/".$username.".".substr($_FILES['fileToUpload']['name'],strpos($_FILES['fileToUpload']['name'],".")+1)))
+        {
+            $response['error'] = false;
+            $response['message'] = 'Rename Failed!';
+        }
+        // File successfully uploaded
+        $response['message'] = 'File uploaded successfully!';
+        $response['error'] = false;
+        $response['file_path'] = $file_upload_url . basename($username);
+    } catch (Exception $e) {
+        // Exception occurred. Make error flag true
+        $response['error'] = true;
+        $response['message'] = $e->getMessage();
+    }
+} else {
+    // File parameter is missing
+    $response['error'] = true;
+    $response['message'] = 'Not received any file!F';
 }
-  // Check file size
-  if ($_FILES["fileToUpload"]["size"] < 1000000) {
-    echo "Sorry, your file is too large.";
-    $uploadOk = 0;
-  }
-  
-  // Check if $uploadOk is set to 0 by an error
-  if ($uploadOk == 0) {
-    echo "Sorry, your file was not uploaded.";
-  // if everything is ok, try to upload file
-  } else {
-    if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
-        header("Location:facedecode.php?username={$_FILES["fileToUpload"]["name"]}");
-    } else {
-      echo "Sorry, there was an error uploading your file.";
+
+// Echo final json response to client
+echo json_encode($response);
+
+function deleteDirectory($dir) {
+    if (!file_exists($dir)) {
+        return true;
     }
-  }
+
+    if (!is_dir($dir)) {
+        return unlink($dir);
+    }
+
+    foreach (scandir($dir) as $item) {
+        if ($item == '.' || $item == '..') {
+            continue;
+        }
+
+        if (!deleteDirectory($dir . DIRECTORY_SEPARATOR . $item)) {
+            return false;
+        }
+
+    }
+
+    return rmdir($dir);
 }
 ?>
