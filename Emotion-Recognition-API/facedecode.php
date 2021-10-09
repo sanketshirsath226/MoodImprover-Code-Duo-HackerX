@@ -1,5 +1,4 @@
 <?php
-$url = $_SERVER['REQUEST_URI'];
 
 if (isset($_POST['username'])) {
     $username = $_POST['username'];
