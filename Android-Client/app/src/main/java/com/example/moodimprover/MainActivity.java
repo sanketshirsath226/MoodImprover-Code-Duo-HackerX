@@ -1,4 +1,4 @@
- package com.example.myapplication;
+package com.example.moodimprover;
 
 import androidx.appcompat.app.AppCompatActivity;
 
