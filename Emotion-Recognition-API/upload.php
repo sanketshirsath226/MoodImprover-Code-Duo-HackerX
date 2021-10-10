@@ -41,16 +41,16 @@ if (isset($_FILES['fileToUpload']['name'])) {
         // Exception occurred. Make error flag true
         $response['error'] = true;
         $response['message'] = $e->getMessage();
+        header("Location:facedecode.php?username={$username}");
     }
 } else {
     // File parameter is missing
     $response['error'] = true;
     $response['message'] = 'Not received any file!F';
 }
-
-// Echo final json response to client
 echo json_encode($response);
 
+// Echo final json response to client
 function deleteDirectory($dir) {
     if (!file_exists($dir)) {
         return true;

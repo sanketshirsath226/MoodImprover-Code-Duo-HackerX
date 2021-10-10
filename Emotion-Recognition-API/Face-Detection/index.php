@@ -1,7 +1,8 @@
 <?php
 
 if (isset($_POST['username'])) {
-  $username = $_POST['username'];
+  $url = $_SERVER['REQUEST_URI'];
+  $username = substr($url, strrpos($url, '=' )+1);   
   $target_dir = "uploads/{$username}/";
   $target_file = $target_dir . $username . ".webm";
   $count = 1;

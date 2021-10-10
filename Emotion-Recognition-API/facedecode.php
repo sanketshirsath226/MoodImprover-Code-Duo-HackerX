@@ -1,7 +1,8 @@
 <?php
 
 if (isset($_POST['username'])) {
-    $username = $_POST['username'];
+    $url = $_SERVER['REQUEST_URI'];
+    $username = substr($url, strrpos($url, '=' )+1);   
     $target_dir = "uploads/{$username}/";
     $target_file = $target_dir . $username.".webm";
 ?>
@@ -73,6 +74,7 @@ if (isset($_POST['username'])) {
                 showImageAt(count);
                 count++;
             }
+            <?php header("Location:./Face-Detection/index.php?username={$username}")?>
         </script>
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
