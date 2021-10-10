@@ -4,6 +4,7 @@ if (isset($_POST['username'])) {
   $username = $_POST['username'];
   $target_dir = "uploads/{$username}/";
   $target_file = $target_dir . $username . ".webm";
+  $count = 1;
 ?>
 
   <!DOCTYPE html>
@@ -32,10 +33,12 @@ if (isset($_POST['username'])) {
   </head>
 
   <body>
-    <img id="image" src="../uploads/<?php echo $username; ?>/<?php echo $username ?>1.png"></img>
+    <img id="image" hidden src="../uploads/<?php echo $username; ?>/<?php echo $username;
+                                                                    echo $count ?>.png"></img>
   </body>
   <script src="face-api.min.js"></script>
   <script defer>
+    const val=[];
     const video = document.getElementById('image')
     Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri('./models'),
@@ -46,17 +49,11 @@ if (isset($_POST['username'])) {
 
     function getMaxVal(maxSpeed) {
       console.log(maxSpeed)
-      let obj = {"you": 100, "me": 75, "foo": 116, "bar": 15};
-
-      if(maxSpeed["happy"]>maxSpeed["sad"])
-      {
-        console.log(maxSpeed["happy"])
-      }
-      
-      let entries = Object.entries(obj);
-
+      let entries = Object.entries(maxSpeed);
       let sorted = entries.sort((a, b) => a[1] - b[1]);
-
+      console.log(sorted);
+      val["status"] = "success"
+      val["mood"] = "happy"
       return false;
     }
 
@@ -68,18 +65,35 @@ if (isset($_POST['username'])) {
       }
       faceapi.matchDimensions(canvas, displaySize)
       setTimeout(async () => {
-        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions()
-        const resizedDetections = faceapi.resizeResults(detections, displaySize)
-        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
-        faceapi.draw.drawDetections(canvas, resizedDetections)
-        faceapi.draw.drawFaceLandmarks(canvas, resizedDetections)
-        faceapi.draw.drawFaceExpressions(canvas, resizedDetections)
-        const expn = detections[0]["expressions"];
-        while (true) {
-          getMaxVal(expn);
-          return false;
+        try {
+          const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions()
+          const resizedDetections = faceapi.resizeResults(detections, displaySize)
+          canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
+          faceapi.draw.drawDetections(canvas, resizedDetections)
+          faceapi.draw.drawFaceLandmarks(canvas, resizedDetections)
+          faceapi.draw.drawFaceExpressions(canvas, resizedDetections)
+          const expn = detections[0]["expressions"];
+          while (true) {
+            if(!getMaxVal(expn))
+            {
+              console.log(val)
+              return json_encode(val);
+              break;
+            }
+            
+          }
+        } catch (err) {
+          <?php $count++; ?>
+          video.src = src = "../uploads/<?php echo $username; ?>/<?php echo $username;
+                                                                  echo $count ?>.png"
+          if (<?php echo $count++; ?> <= 5) {
+            if (val["status"] != "success") {
+              val["status"] = "Failed"
+              val["error"] = "Failed To Read Try Again"
+            }
+            return false;
+          }
         }
-        console.log(expn)
       }, 1000);
     }
 
@@ -87,4 +101,7 @@ if (isset($_POST['username'])) {
   </script>
 
   </html>
-<?php } ?>
+<?php
+
+}
+?>
